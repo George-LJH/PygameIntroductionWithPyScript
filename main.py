@@ -25,18 +25,36 @@ playerSpeed = 10
 obstacleSize = 100
 obstacleInterval = 0.75
 pygame.init()
+
+
 font = pygame.font.SysFont(None, 40)
+buttonFont = pygame.font.SysFont(None, 44)
 window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "My First PyGame Program"
 screen = window.get_surface()
-startButton = pygame.Rect(500, 300, 200, 60)
-buttonColor = (80, 80, 80)
+startButton = pygame.Rect(500, 300, 280, 76)
+
+
+def button(surface, rect, text, font, baseColor, hoverColor, textColor, onClick, event=None):
+    if event is not None and event.type == pygame.MOUSEBUTTONDOWN:
+        if rect.collidepoint(event.pos):
+            onClick()
+
+    isHovered = rect.collidepoint(pygame.mouse.get_pos())
+    color = hoverColor if isHovered else baseColor
+    shadowRect = rect.move(0, 8)
+    pygame.draw.rect(surface, (10, 15, 25), shadowRect, border_radius=14)
+    pygame.draw.rect(surface, color, rect, border_radius=14)
+    pygame.draw.rect(surface, (125, 185, 255), rect, width=2, border_radius=14)
+
+    buttonText = font.render(text, True, textColor)
+    textPosition = buttonText.get_rect(center=rect.center)
+    surface.blit(buttonText, textPosition)
 
 
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
     global nextObstacles, player, lastObstacleTime, gameStarted
-
     score = 0
     obstacleInterval = 0.75
     playerX = 0
@@ -48,6 +66,12 @@ def resetGame():
     gameStarted = False
 
 
+def startGame():
+    global gameStarted
+    resetGame()
+    gameStarted = True
+
+
 running = True
 resetGame()
 
@@ -57,9 +81,11 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if startButton.collidepoint(event.pos):
-                resetGame()
-                gameStarted = True
+            button(
+                screen, startButton, "START", buttonFont,
+                (35, 90, 175), (45, 115, 210), (255, 255, 255),
+                startGame, event
+            )
     if gameStarted:
         keys = pygame.key.get_pressed()
 
@@ -112,11 +138,12 @@ while running:
         scorePosition = scoreText.get_rect(topleft=(20, 20))
         screen.blit(scoreText, scorePosition)
     else:
-        pygame.draw.rect(screen, buttonColor, startButton)
-
-        startText = font.render("START", True, (255, 255, 255))
-        textPosition = startText.get_rect(center=startButton.center)
-        screen.blit(startText, textPosition)
+        screen.fill((0, 0, 0))
+        button(
+            screen, startButton, "START", buttonFont,
+            (35, 90, 175), (45, 115, 210), (255, 255, 255),
+            startGame
+        )
     window.flip()
     # Give the browser time to update the screen
     await asyncio.sleep(1 / 120)

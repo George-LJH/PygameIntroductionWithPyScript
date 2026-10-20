@@ -60,10 +60,12 @@ def button(surface, rect, text, font, baseColor, hoverColor, textColor, onClick,
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
     global nextObstacles, player, lastObstacleTime, gameStarted
+    global obstacleSize
+    obstacleSize = 25
     score = 0
     obstacleInterval = 0.75
-    playerX = 0
-    playerY = screenHeight - playerSize
+    playerX = (screenWidth/2)-(playerSize)/2
+    playerY = (screenHeight/2)-(playerSize)/2
     player = pygame.Rect(playerX, playerY, playerSize, playerSize)
     obstacles = [randomObstacle(player), randomObstacle(player)]
     nextObstacles = [randomObstacle(player), randomObstacle(player)]
@@ -124,6 +126,8 @@ while running:
 
         currentTime = time.time()
         if currentTime - lastObstacleTime >= obstacleInterval:
+            
+            obstacleSize = min(obstacleSize + 1, 50)
 
             obstacles.pop(0)
             obstaclesToAdd = min(2, maxObstacles - len(obstacles))

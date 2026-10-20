@@ -25,37 +25,18 @@ screenHeight = 720
 playerSize = 100
 playerSpeed = 10
 obstacleSize = 25
-maxObstacles = 10
 obstacleInterval = 0.75
+maxObstacles = 5
 pygame.init()
 
 
 font = pygame.font.SysFont(None, 40)
-buttonFont = pygame.font.SysFont(None, 44)
 window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "My First PyGame Program"
 screen = window.get_surface()
-startButton = pygame.Rect(500, 300, 280, 76)
 playerImage = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 playerImage.fill((255, 0, 0))
-
-
-def button(surface, rect, text, font, baseColor, hoverColor, textColor, onClick, event=None):
-    if event is not None and event.type == pygame.MOUSEBUTTONDOWN:
-        if rect.collidepoint(event.pos):
-            onClick()
-
-    isHovered = rect.collidepoint(pygame.mouse.get_pos())
-    color = hoverColor if isHovered else baseColor
-    shadowRect = rect.move(0, 8)
-    pygame.draw.rect(surface, (10, 15, 25), shadowRect, border_radius=14)
-    pygame.draw.rect(surface, color, rect, border_radius=14)
-    pygame.draw.rect(surface, (125, 185, 255), rect, width=2, border_radius=14)
-
-    buttonText = font.render(text, True, textColor)
-    textPosition = buttonText.get_rect(center=rect.center)
-    surface.blit(buttonText, textPosition)
-
+teleportDistance = 200
 
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
@@ -87,13 +68,24 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            button(
-                screen, startButton, "START", buttonFont,
-                (35, 90, 175), (45, 115, 210), (255, 255, 255),
-                startGame, event
-            )
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN and not gameStarted:
+                startGame()
+            if (
+                event.key == pygame.K_SPACE and gameStarted and (pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_w])):
+                playerY = max(0, playerY - teleportDistance)
+            if (
+                event.key == pygame.K_SPACE and gameStarted and (pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s])):
+                playerY = max(0, playerY + teleportDistance)
+            if (
+                event.key == pygame.K_SPACE and gameStarted and (pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_d])):
+                playerX = max(0, playerX + teleportDistance)
+            if (
+                event.key == pygame.K_SPACE and gameStarted and (pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_a])):
+                playerX = max(0, playerX - teleportDistance)
     if gameStarted:
+        # Draw the game
+        screen.fill((0, 255, 0))
         keys = pygame.key.get_pressed()
 
         # Move left and right
@@ -108,7 +100,8 @@ while running:
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             playerY += playerSpeed
 
-
+        if (keys[pygame.K_UP] or keys[pygame.K_w]) and keys[pygame.K_SPACE]:
+            playerY -= 100
         # Keep the player inside the screen
         playerX = max(0, min(playerX, screenWidth - playerSize))
         playerY = max(0, min(playerY, screenHeight - playerSize))
@@ -138,8 +131,7 @@ while running:
             lastObstacleTime = currentTime
             obstacleInterval = max(0.01, obstacleInterval - 0.01)
 
-        # Draw the game
-        screen.fill((0, 255, 0))
+
         for obstacle in obstacles:
             pygame.draw.rect(screen, (0, 0, 255), obstacle)
         screen.blit(playerImage, player)
@@ -150,11 +142,9 @@ while running:
         screen.blit(scoreText, scorePosition)
     else:
         screen.fill((0, 0, 0))
-        button(
-            screen, startButton, "START", buttonFont,
-            (35, 90, 175), (45, 115, 210), (255, 255, 255),
-            startGame
-        )
+        startText = font.render("Press ENTER to start", True, (255, 255, 255))
+        startPosition = startText.get_rect(center=(screenWidth // 2, screenHeight // 2))
+        screen.blit(startText, startPosition)
     window.flip()
     # Give the browser time to update the screen
     await asyncio.sleep(1 / 120)

@@ -1,1 +1,4 @@
 packages = []
+
+[files]
+"assets/cube.png" = "player.png"

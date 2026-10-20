@@ -3,6 +3,8 @@ import random
 import pygame
 import time
 import sys
+
+
 def randomObstacle(safeRect=None):
     while True:
         obstacleX = random.randint(0, screenWidth - obstacleSize)
@@ -22,7 +24,8 @@ screenWidth = 1280
 screenHeight = 720
 playerSize = 100
 playerSpeed = 10
-obstacleSize = 100
+obstacleSize = 25
+maxObstacles = 10
 obstacleInterval = 0.75
 pygame.init()
 
@@ -33,6 +36,8 @@ window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "My First PyGame Program"
 screen = window.get_surface()
 startButton = pygame.Rect(500, 300, 280, 76)
+playerImage = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
+playerImage.fill((255, 0, 0))
 
 
 def button(surface, rect, text, font, baseColor, hoverColor, textColor, onClick, event=None):
@@ -101,6 +106,7 @@ while running:
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             playerY += playerSpeed
 
+
         # Keep the player inside the screen
         playerX = max(0, min(playerX, screenWidth - playerSize))
         playerY = max(0, min(playerY, screenHeight - playerSize))
@@ -120,18 +126,19 @@ while running:
         if currentTime - lastObstacleTime >= obstacleInterval:
 
             obstacles.pop(0)
-            obstacles.append(nextObstacles.pop(0))
-
-            nextObstacles.append(randomObstacle(player))
+            obstaclesToAdd = min(2, maxObstacles - len(obstacles))
+            for _ in range(obstaclesToAdd):
+                obstacles.append(nextObstacles.pop(0))
+                nextObstacles.append(randomObstacle())
             score += 1
             lastObstacleTime = currentTime
-            obstacleInterval = max(0.1, obstacleInterval - 0.01)
+            obstacleInterval = max(0.01, obstacleInterval - 0.01)
 
         # Draw the game
         screen.fill((0, 255, 0))
         for obstacle in obstacles:
             pygame.draw.rect(screen, (0, 0, 255), obstacle)
-        pygame.draw.rect(screen, (255, 0, 0), player)
+        screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
             pygame.draw.rect(screen, (255, 255, 0), nextObstacle, 5)
         scoreText = font.render(f"Score: {score}", True, (255, 255, 255))

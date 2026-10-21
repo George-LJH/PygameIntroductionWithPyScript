@@ -3,7 +3,7 @@ import random
 import pygame
 import time
 import sys
-
+from js import localStorage
 
 def randomObstacle(safeRect=None):
     while True:
@@ -42,10 +42,11 @@ playerImage.fill((255, 0, 0))
 teleportPreview = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 teleportPreview.fill((255, 0, 0, 100))
 gameOverOnce = False
+highscore = 0
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
     global nextObstacles, player, lastObstacleTime, gameStarted
-    global obstacleSize, lastTeleportTime
+    global obstacleSize, lastTeleportTime, highscore
     obstacleSize = 25
     score = 0
     obstacleInterval = 0.75
@@ -57,6 +58,10 @@ def resetGame():
     lastObstacleTime = time.time()
     lastTeleportTime = pygame.time.get_ticks() - teleportCooldown
     gameStarted = False
+    saved_highscore = localStorage.getItem("highScore")
+    highscore = int(saved_highscore or 0)
+    if saved_highscore is None:
+        localStorage.setItem("highScore", "0")
 
 
 def startGame():
@@ -137,6 +142,9 @@ while running:
                 obstacles.append(nextObstacles.pop(0))
                 nextObstacles.append(randomObstacle())
             score += 1
+            if score > highscore:
+                highscore = score
+                localStorage.setItem("highScore", str(highscore))
             lastObstacleTime = currentTimeObstacleGeneration
             obstacleInterval = max(0.01, obstacleInterval - 0.01)
 
@@ -157,10 +165,25 @@ while running:
         screen.fill((0, 0, 0))
         if not gameOverOnce:
             startText = font.render("Press ENTER to start", True, (255, 255, 255))
+            startPosition = startText.get_rect(center=(screenWidth // 2, screenHeight // 2))
+            screen.blit(startText, startPosition)
         else:
-            startText = font.render("Game Over! \n Press ENTER to start", True, (255, 255, 255))
-        startPosition = startText.get_rect(center=(screenWidth // 2, screenHeight // 2))
-        screen.blit(startText, startPosition)
+            gameOverText = font.render("Game Over!", True, (255, 255, 255))
+            gameOverPosition = gameOverText.get_rect(center=(screenWidth // 2, screenHeight // 2 - 50))
+            restartText = font.render("Press ENTER to restart", True, (255, 255, 255))
+            restartPosition = restartText.get_rect(center=(screenWidth // 2, screenHeight // 2))
+            currentScoreText = font.render(f"Score: {score}", True, (255, 255, 255))
+            currentScoreTextPosition = currentScoreText.get_rect(center=(screenWidth // 2, screenHeight // 2 + 100))
+            screen.blit(gameOverText, gameOverPosition)
+            screen.blit(restartText, restartPosition)
+            screen.blit(currentScoreText, currentScoreTextPosition)
+
+        highscoreText = font.render(f"Highscore: {highscore}", True, (255, 255, 255))
+        # startPosition = startText.get_rect(center=(screenWidth // 2, screenHeight // 2))
+        highscorePosition = highscoreText.get_rect(center=(screenWidth // 2, screenHeight // 2 + 50))
+        if not gameOverOnce:
+            screen.blit(startText, startPosition)
+        screen.blit(highscoreText, highscorePosition)
     window.flip()
     # Give the browser time to update the screen
     await asyncio.sleep(1 / 120)

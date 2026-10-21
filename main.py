@@ -26,7 +26,10 @@ playerSize = 100
 playerSpeed = 10
 obstacleSize = 25
 obstacleInterval = 0.75
-maxObstacles = 5
+maxObstacles = 1
+teleportDistance = 300
+teleportCooldown = 1000
+lastTeleportTime = -teleportCooldown
 pygame.init()
 
 
@@ -36,12 +39,13 @@ window.title = "My First PyGame Program"
 screen = window.get_surface()
 playerImage = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 playerImage.fill((255, 0, 0))
-teleportDistance = 200
+teleportPreview = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
+teleportPreview.fill((255, 0, 0, 100))
 
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
     global nextObstacles, player, lastObstacleTime, gameStarted
-    global obstacleSize
+    global obstacleSize, lastTeleportTime
     obstacleSize = 25
     score = 0
     obstacleInterval = 0.75
@@ -51,6 +55,7 @@ def resetGame():
     obstacles = [randomObstacle(player), randomObstacle(player)]
     nextObstacles = [randomObstacle(player), randomObstacle(player)]
     lastObstacleTime = time.time()
+    lastTeleportTime = pygame.time.get_ticks() - teleportCooldown
     gameStarted = False
 
 
@@ -71,18 +76,23 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN and not gameStarted:
                 startGame()
-            if (
-                event.key == pygame.K_SPACE and gameStarted and (pygame.key.get_pressed()[pygame.K_UP] or pygame.key.get_pressed()[pygame.K_w])):
-                playerY = max(0, playerY - teleportDistance)
-            if (
-                event.key == pygame.K_SPACE and gameStarted and (pygame.key.get_pressed()[pygame.K_DOWN] or pygame.key.get_pressed()[pygame.K_s])):
-                playerY = max(0, playerY + teleportDistance)
-            if (
-                event.key == pygame.K_SPACE and gameStarted and (pygame.key.get_pressed()[pygame.K_RIGHT] or pygame.key.get_pressed()[pygame.K_d])):
-                playerX = max(0, playerX + teleportDistance)
-            if (
-                event.key == pygame.K_SPACE and gameStarted and (pygame.key.get_pressed()[pygame.K_LEFT] or pygame.key.get_pressed()[pygame.K_a])):
-                playerX = max(0, playerX - teleportDistance)
+            if event.key == pygame.K_SPACE and gameStarted:
+                currentTeleportTime = pygame.time.get_ticks()
+                if currentTeleportTime - lastTeleportTime >= teleportCooldown:
+                    keys = pygame.key.get_pressed()
+                    if keys[pygame.K_UP] or keys[pygame.K_w]:
+                        playerY -= teleportDistance
+                    elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                        playerY += teleportDistance
+                    elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                        playerX += teleportDistance
+                    elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                        playerX -= teleportDistance
+
+                    lastTeleportTime = currentTeleportTime
+
+                    playerX = max(0, min(playerX, screenWidth - playerSize))
+                    playerY = max(0, min(playerY, screenHeight - playerSize))
     if gameStarted:
         # Draw the game
         screen.fill((0, 255, 0))
@@ -100,8 +110,6 @@ while running:
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             playerY += playerSpeed
 
-        if (keys[pygame.K_UP] or keys[pygame.K_w]) and keys[pygame.K_SPACE]:
-            playerY -= 100
         # Keep the player inside the screen
         playerX = max(0, min(playerX, screenWidth - playerSize))
         playerY = max(0, min(playerY, screenHeight - playerSize))
@@ -117,8 +125,8 @@ while running:
                 obstacleInterval = 0.75
                 break
 
-        currentTime = time.time()
-        if currentTime - lastObstacleTime >= obstacleInterval:
+        currentTimeObstacleGeneration = time.time()
+        if currentTimeObstacleGeneration - lastObstacleTime >= obstacleInterval:
             
             obstacleSize = min(obstacleSize + 1, 50)
 
@@ -128,12 +136,16 @@ while running:
                 obstacles.append(nextObstacles.pop(0))
                 nextObstacles.append(randomObstacle())
             score += 1
-            lastObstacleTime = currentTime
+            lastObstacleTime = currentTimeObstacleGeneration
             obstacleInterval = max(0.01, obstacleInterval - 0.01)
 
 
         for obstacle in obstacles:
             pygame.draw.rect(screen, (0, 0, 255), obstacle)
+        screen.blit(teleportPreview, (max(0, playerX - teleportDistance), playerY))
+        screen.blit(teleportPreview, (min(screenWidth - teleportPreview.get_width(), playerX + teleportDistance), playerY))
+        screen.blit(teleportPreview, (playerX, max(0, playerY - teleportDistance)))
+        screen.blit(teleportPreview, (playerX, min(screenHeight - teleportPreview.get_height(), playerY + teleportDistance)))
         screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
             pygame.draw.rect(screen, (255, 255, 0), nextObstacle, 5)

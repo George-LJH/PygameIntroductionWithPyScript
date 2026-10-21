@@ -2,7 +2,6 @@ import asyncio
 import random
 import pygame
 import time
-import sys
 from js import localStorage
 
 def randomObstacle(safeRect=None):
@@ -161,6 +160,23 @@ while running:
         scoreText = font.render(f"Score: {score}", True, (255, 255, 255))
         scorePosition = scoreText.get_rect(topleft=(20, 20))
         screen.blit(scoreText, scorePosition)
+
+        teleportCooldownRemaining = max(
+            0, (teleportCooldown - (pygame.time.get_ticks() - lastTeleportTime)) / 1000
+        )
+        if teleportCooldownRemaining > 0:
+            teleportCooldownText = font.render(
+                f"Teleport cooldown: {teleportCooldownRemaining:.1f}s",
+                True,
+                (255, 255, 255),
+        )
+        else:
+            teleportCooldownText = font.render(
+                f"Teleport ready!",
+                True,
+                (255, 255, 255),
+        )
+        screen.blit(teleportCooldownText, (10, 60))
     else:
         screen.fill((0, 0, 0))
         if not gameOverOnce:

@@ -2,7 +2,7 @@ import asyncio
 import random
 import pygame
 import time
-from js import localStorage
+import js
 
 def randomObstacle(safeRect=None):
     while True:
@@ -29,6 +29,7 @@ maxObstacles = 2
 teleportDistance = 300
 teleportCooldown = 500
 lastTeleportTime = -teleportCooldown
+githubUrl = "https://github.com/George-LJH/PygameIntroductionWithPyScript"
 pygame.init()
 
 
@@ -36,12 +37,17 @@ window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "My First PyGame Program"
 screen = window.get_surface()
 playerImage = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
+red = random.randint(0, 255)
+green = random.randint(0, 255)
+blue = random.randint(0, 255)
 playerImage.fill((255, 0, 0))
 teleportPreview = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 teleportPreview.fill((255, 0, 0, 100))
 gameOverOnce = False
 highscore = 0
-
+redScale = 1
+greenScale = 1
+blueScale = 1
 
 def drawCenteredLines(textSurfaces, centerX, centerY, spacing):
     totalHeight = sum(text.get_height() for text in textSurfaces)
@@ -69,10 +75,10 @@ def resetGame():
     lastObstacleTime = time.time()
     lastTeleportTime = pygame.time.get_ticks() - teleportCooldown
     gameStarted = False
-    saved_highscore = localStorage.getItem("highScore")
+    saved_highscore = js.localStorage.getItem("highScore")
     highscore = int(saved_highscore or 0)
     if saved_highscore is None:
-        localStorage.setItem("highScore", "0")
+        js.localStorage.setItem("highScore", "0")
     maxObstacles = 2
 
 
@@ -88,6 +94,31 @@ resetGame()
 while running:
     displayWidth, displayHeight = screen.get_size()
     uiScale = min(displayWidth / screenWidth, displayHeight / screenHeight)
+    teleportedThisFrame = False
+    startButton = pygame.Rect(
+        displayWidth // 2 - 140,
+        displayHeight - 90,
+        280,
+        70,
+    )
+
+
+    red += redScale
+    green += greenScale
+    blue += blueScale
+    if red >= 255:
+        redScale = -1
+    elif red <= 0:
+        redScale = 1
+    if green >= 255:
+        greenScale = -1
+    elif green <= 0:
+        greenScale = 1
+    if blue >= 255:
+        blueScale = -1
+    elif blue <= 0:
+        blueScale = 1
+    playerImage.fill((red, green, blue))
     font = pygame.font.SysFont(None, max(20, round(40 * uiScale)))
     instructionFont = pygame.font.SysFont(None, max(16, round(28 * uiScale)))
     textSpacing = max(8, round(12 * uiScale))
@@ -103,35 +134,45 @@ while running:
                 currentTeleportTime = pygame.time.get_ticks()
                 if currentTeleportTime - lastTeleportTime >= teleportCooldown:
                     keys = pygame.key.get_pressed()
+                    teleported = False
                     if keys[pygame.K_UP] or keys[pygame.K_w]:
                         playerY -= teleportDistance
+                        teleported = True
                     elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
                         playerY += teleportDistance
+                        teleported = True
                     elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                         playerX += teleportDistance
+                        teleported = True
                     elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
                         playerX -= teleportDistance
+                        teleported = True
 
-                    lastTeleportTime = currentTeleportTime
+                    if teleported:
+                        lastTeleportTime = currentTeleportTime
+                        teleportedThisFrame = True
+                        playerX = max(0, min(playerX, screenWidth - playerSize))
+                        playerY = max(0, min(playerY, screenHeight - playerSize))
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if startButton.collidepoint(event.pos) and not gameStarted:
+                js.window.open(githubUrl, "_blank")
 
-                    playerX = max(0, min(playerX, screenWidth - playerSize))
-                    playerY = max(0, min(playerY, screenHeight - playerSize))
     if gameStarted:
         # Draw the game
         screen.fill((0, 255, 0))
         keys = pygame.key.get_pressed()
+        if not teleportedThisFrame:
+            # Move left and right
+            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                playerX -= playerSpeed
+            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                playerX += playerSpeed
 
-        # Move left and right
-        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            playerX -= playerSpeed
-        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            playerX += playerSpeed
-
-        # Move up and down
-        if keys[pygame.K_UP] or keys[pygame.K_w]:
-            playerY -= playerSpeed
-        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            playerY += playerSpeed
+            # Move up and down
+            if keys[pygame.K_UP] or keys[pygame.K_w]:
+                playerY -= playerSpeed
+            if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                playerY += playerSpeed
 
         # Keep the player inside the screen
         playerX = max(0, min(playerX, screenWidth - playerSize))
@@ -162,7 +203,7 @@ while running:
             score += 1
             if score > highscore:
                 highscore = score
-                localStorage.setItem("highScore", str(highscore))
+                js.localStorage.setItem("highScore", str(highscore))
             lastObstacleTime = currentTimeObstacleGeneration
             obstacleInterval = max(0.01, obstacleInterval - 0.01)
 
@@ -211,6 +252,14 @@ while running:
     else:
         # Game Over or Start Screen
         screen.fill((0, 0, 0))
+        startButtonColor = (0, 180, 255) if startButton.collidepoint(
+            pygame.mouse.get_pos()
+        ) else (0, 120, 255)
+        pygame.draw.rect(screen, startButtonColor, startButton)
+        buttonLabel = "View GitHub Repo"
+        startButtonText = font.render(buttonLabel, True, (255, 255, 255))
+        startButtonTextPosition = startButtonText.get_rect(center=startButton.center)
+        screen.blit(startButtonText, startButtonTextPosition)
         if not gameOverOnce:
             menuTexts = [
                 font.render("Press ENTER to start", True, (255, 255, 255)),

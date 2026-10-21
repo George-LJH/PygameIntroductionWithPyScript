@@ -166,7 +166,7 @@ while running:
         )
         if teleportCooldownRemaining > 0:
             teleportCooldownText = font.render(
-                f"Teleport cooldown: {teleportCooldownRemaining:.1f}s",
+                f"Teleport cooldown: {teleportCooldownRemaining:.3f}s",
                 True,
                 (255, 255, 255),
         )

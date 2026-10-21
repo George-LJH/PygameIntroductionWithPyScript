@@ -154,7 +154,7 @@ while running:
             
             obstacleSize = min(obstacleSize + 1, 50)
             if score % 5 == 0 and score != 0:
-                maxObstacles += max(7, int(score / 5))
+                maxObstacles += min(7, int(score / 5))
             obstacles = nextObstacles
             nextObstacles = []
             for _ in range(maxObstacles):

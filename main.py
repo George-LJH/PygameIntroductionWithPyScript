@@ -27,7 +27,7 @@ obstacleSize = 25
 obstacleInterval = 0.75
 maxObstacles = 2
 teleportDistance = 300
-teleportCooldown = 1000
+teleportCooldown = 500
 lastTeleportTime = -teleportCooldown
 pygame.init()
 
@@ -176,7 +176,7 @@ while running:
         screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
             pygame.draw.rect(screen, (255, 255, 0), nextObstacle, 5)
-        scoreText = font.render(f"Score: {score}", True, (255, 255, 255))
+        scoreText = font.render(f"Wave: {score}", True, (255, 255, 255))
         teleportCooldownRemaining = max(
             0, (teleportCooldown - (pygame.time.get_ticks() - lastTeleportTime)) / 1000
         )
@@ -219,14 +219,17 @@ while running:
             menuTexts = [
                 font.render("Game Over!", True, (255, 255, 255)),
                 font.render("Press ENTER to restart", True, (255, 255, 255)),
-                font.render(f"Score: {score}", True, (255, 255, 255)),
+                font.render(f"Wave: {score}", True, (255, 255, 255)),
             ]
 
         menuTexts.append(font.render(f"Highscore: {highscore}", True, (255, 255, 255)))
         instructions = [
             "Move: Arrow Keys or W A S D",
-            "Teleport: SPACE + a Direction Key",
-            "Avoid blue lasers. Yellow outlines show the next lasers.",
+            "Teleport: Hold SPACE and press a Direction Key",
+            "Teleport cooldown: Check the timer in the top-left",
+            "Blue lasers are active. Yellow outlines show the next wave.",
+            "Each wave replaces all lasers at the same time.",
+            "The number of lasers can increase during the game.",
         ]
         menuTexts.extend(
             instructionFont.render(instruction, True, (255, 255, 255))

@@ -32,7 +32,6 @@ lastTeleportTime = -teleportCooldown
 pygame.init()
 
 
-font = pygame.font.SysFont(None, 40)
 window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "My First PyGame Program"
 screen = window.get_surface()
@@ -42,10 +41,23 @@ teleportPreview = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 teleportPreview.fill((255, 0, 0, 100))
 gameOverOnce = False
 highscore = 0
+
+
+def drawCenteredLines(textSurfaces, centerX, centerY, spacing):
+    totalHeight = sum(text.get_height() for text in textSurfaces)
+    totalHeight += spacing * (len(textSurfaces) - 1)
+    currentY = centerY - totalHeight / 2
+
+    for text in textSurfaces:
+        textPosition = text.get_rect(center=(centerX, currentY + text.get_height() / 2))
+        screen.blit(text, textPosition)
+        currentY += text.get_height() + spacing
+
+
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
     global nextObstacles, player, lastObstacleTime, gameStarted
-    global obstacleSize, lastTeleportTime, highscore
+    global obstacleSize, lastTeleportTime, highscore, maxObstacles
     obstacleSize = 25
     score = 0
     obstacleInterval = 0.75
@@ -61,6 +73,7 @@ def resetGame():
     highscore = int(saved_highscore or 0)
     if saved_highscore is None:
         localStorage.setItem("highScore", "0")
+    maxObstacles = 2
 
 
 def startGame():
@@ -73,6 +86,12 @@ running = True
 resetGame()
 
 while running:
+    displayWidth, displayHeight = screen.get_size()
+    uiScale = min(displayWidth / screenWidth, displayHeight / screenHeight)
+    font = pygame.font.SysFont(None, max(20, round(40 * uiScale)))
+    instructionFont = pygame.font.SysFont(None, max(16, round(28 * uiScale)))
+    textSpacing = max(8, round(12 * uiScale))
+
     # Check for events, such as closing the window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -134,11 +153,11 @@ while running:
         if currentTimeObstacleGeneration - lastObstacleTime >= obstacleInterval:
             
             obstacleSize = min(obstacleSize + 1, 50)
-
-            obstacles.pop(0)
-            obstaclesToAdd = min(2, maxObstacles - len(obstacles))
-            for _ in range(obstaclesToAdd):
-                obstacles.append(nextObstacles.pop(0))
+            if score % 5 == 0 and score != 0:
+                maxObstacles += max(7, int(score / 5))
+            obstacles = nextObstacles
+            nextObstacles = []
+            for _ in range(maxObstacles):
                 nextObstacles.append(randomObstacle())
             score += 1
             if score > highscore:
@@ -158,9 +177,6 @@ while running:
         for nextObstacle in nextObstacles:
             pygame.draw.rect(screen, (255, 255, 0), nextObstacle, 5)
         scoreText = font.render(f"Score: {score}", True, (255, 255, 255))
-        scorePosition = scoreText.get_rect(topleft=(20, 20))
-        screen.blit(scoreText, scorePosition)
-
         teleportCooldownRemaining = max(
             0, (teleportCooldown - (pygame.time.get_ticks() - lastTeleportTime)) / 1000
         )
@@ -170,36 +186,53 @@ while running:
                 True,
                 (255, 255, 255),
         )
+
         else:
             teleportCooldownText = font.render(
                 f"Teleport ready!",
                 True,
                 (255, 255, 255),
         )
-        screen.blit(teleportCooldownText, (10, 60))
+        obstacleIntervalText = font.render(
+            f"Game Speed: {obstacleInterval:.2f}s",
+            True,
+            (255, 255, 255),
+        )
+        hudTexts = [scoreText, teleportCooldownText, obstacleIntervalText]
+        tallestHudText = 0
+        for text in hudTexts:
+            if text.get_height() > tallestHudText:
+                tallestHudText = text.get_height()
+        hudY = tallestHudText / 2 + textSpacing
+        for text in hudTexts:
+            textPosition = text.get_rect(topleft=(textSpacing, hudY))
+            screen.blit(text, textPosition)
+            hudY += text.get_height() + textSpacing
     else:
+        # Game Over or Start Screen
         screen.fill((0, 0, 0))
         if not gameOverOnce:
-            startText = font.render("Press ENTER to start", True, (255, 255, 255))
-            startPosition = startText.get_rect(center=(screenWidth // 2, screenHeight // 2))
-            screen.blit(startText, startPosition)
+            menuTexts = [
+                font.render("Press ENTER to start", True, (255, 255, 255)),
+            ]
         else:
-            gameOverText = font.render("Game Over!", True, (255, 255, 255))
-            gameOverPosition = gameOverText.get_rect(center=(screenWidth // 2, screenHeight // 2 - 50))
-            restartText = font.render("Press ENTER to restart", True, (255, 255, 255))
-            restartPosition = restartText.get_rect(center=(screenWidth // 2, screenHeight // 2))
-            currentScoreText = font.render(f"Score: {score}", True, (255, 255, 255))
-            currentScoreTextPosition = currentScoreText.get_rect(center=(screenWidth // 2, screenHeight // 2 + 100))
-            screen.blit(gameOverText, gameOverPosition)
-            screen.blit(restartText, restartPosition)
-            screen.blit(currentScoreText, currentScoreTextPosition)
+            menuTexts = [
+                font.render("Game Over!", True, (255, 255, 255)),
+                font.render("Press ENTER to restart", True, (255, 255, 255)),
+                font.render(f"Score: {score}", True, (255, 255, 255)),
+            ]
 
-        highscoreText = font.render(f"Highscore: {highscore}", True, (255, 255, 255))
-        # startPosition = startText.get_rect(center=(screenWidth // 2, screenHeight // 2))
-        highscorePosition = highscoreText.get_rect(center=(screenWidth // 2, screenHeight // 2 + 50))
-        if not gameOverOnce:
-            screen.blit(startText, startPosition)
-        screen.blit(highscoreText, highscorePosition)
+        menuTexts.append(font.render(f"Highscore: {highscore}", True, (255, 255, 255)))
+        instructions = [
+            "Move: Arrow Keys or W A S D",
+            "Teleport: SPACE + a Direction Key",
+            "Avoid blue lasers. Yellow outlines show the next lasers.",
+        ]
+        menuTexts.extend(
+            instructionFont.render(instruction, True, (255, 255, 255))
+            for instruction in instructions
+        )
+        drawCenteredLines(menuTexts, displayWidth / 2, displayHeight / 2, textSpacing)
     window.flip()
     # Give the browser time to update the screen
     await asyncio.sleep(1 / 120)

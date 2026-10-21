@@ -26,7 +26,7 @@ playerSize = 100
 playerSpeed = 10
 obstacleSize = 25
 obstacleInterval = 0.75
-maxObstacles = 1
+maxObstacles = 2
 teleportDistance = 300
 teleportCooldown = 1000
 lastTeleportTime = -teleportCooldown
@@ -41,7 +41,7 @@ playerImage = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 playerImage.fill((255, 0, 0))
 teleportPreview = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 teleportPreview.fill((255, 0, 0, 100))
-
+gameOverOnce = False
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
     global nextObstacles, player, lastObstacleTime, gameStarted
@@ -121,6 +121,7 @@ while running:
                 # playerX = 0
                 # playerY = screenHeight - playerSize
                 # player = pygame.Rect(playerX, playerY, playerSize, playerSize)
+                gameOverOnce = True
                 gameStarted = False
                 obstacleInterval = 0.75
                 break
@@ -154,7 +155,10 @@ while running:
         screen.blit(scoreText, scorePosition)
     else:
         screen.fill((0, 0, 0))
-        startText = font.render("Press ENTER to start", True, (255, 255, 255))
+        if not gameOverOnce:
+            startText = font.render("Press ENTER to start", True, (255, 255, 255))
+        else:
+            startText = font.render("Game Over! \n Press ENTER to start", True, (255, 255, 255))
         startPosition = startText.get_rect(center=(screenWidth // 2, screenHeight // 2))
         screen.blit(startText, startPosition)
     window.flip()

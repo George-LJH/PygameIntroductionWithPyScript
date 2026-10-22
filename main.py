@@ -16,8 +16,6 @@ def randomObstacle(safeRect=None):
 
         if safeRect is None or not obstacle.colliderect(safeRect):
             return obstacle
-
-
 # Game settings
 screenWidth = 1280
 screenHeight = 720
@@ -33,6 +31,7 @@ lastTeleportTime = -teleportCooldown
 githubUrl = "https://github.com/George-LJH/PygameIntroductionWithPyScript"
 pygame.init()
 paused = False
+teleportGraceTime = 250
 
 window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "My First PyGame Program"
@@ -87,7 +86,7 @@ def resetGame():
     maxObstacles = 2
     trail = []
     trailFrameCounter = 0
-
+    lastTeleportTime = pygame.time.get_ticks() - max(teleportCooldown, teleportGraceTime)
 
 def startGame():
     global gameStarted
@@ -204,15 +203,23 @@ while running:
                 updatedTrail.append((trailRect, opacity))
 
         trail = updatedTrail
-        for obstacle in obstacles:
-            if player.colliderect(obstacle):
-                # playerX = 0
-                # playerY = screenHeight - playerSize
-                # player = pygame.Rect(playerX, playerY, playerSize, playerSize)
-                gameOverOnce = True
-                gameStarted = False
-                obstacleInterval = 0.75
-                break
+        # for obstacle in obstacles:
+        #     if player.colliderect(obstacle):
+        #         # playerX = 0
+        #         # playerY = screenHeight - playerSize
+        #         # player = pygame.Rect(playerX, playerY, playerSize, playerSize)
+        #         gameOverOnce = True
+        #         gameStarted = False
+        #         obstacleInterval = 0.75
+        #         break
+                # Only check for game-over collisions if the grace period has expired!
+        if pygame.time.get_ticks() - lastTeleportTime >= teleportGraceTime:
+            for obstacle in obstacles:
+                if player.colliderect(obstacle):
+                    gameOverOnce = True
+                    gameStarted = False
+                    obstacleInterval = 0.75
+                    break
 
         currentTimeObstacleGeneration = time.time()
         if currentTimeObstacleGeneration - lastObstacleTime >= obstacleInterval:
@@ -273,7 +280,16 @@ while running:
             True,
             (255, 255, 255),
         )
-        hudTexts = [scoreText, teleportCooldownText, obstacleIntervalText]
+
+        teleportGraceRemaining = max(
+            0, (teleportGraceTime - (pygame.time.get_ticks() - lastTeleportTime)) / 1000
+        )
+        teleportGraceTimeText = font.render(
+            f"Teleport Grace Time: {teleportGraceRemaining:.3f}s",
+            True,
+            (255, 255, 255),
+        )
+        hudTexts = [scoreText, teleportCooldownText, obstacleIntervalText, teleportGraceTimeText]
         tallestHudText = 0
         for text in hudTexts:
             if text.get_height() > tallestHudText:

@@ -37,17 +37,11 @@ window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "My First PyGame Program"
 screen = window.get_surface()
 playerImage = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
-red = random.randint(0, 255)
-green = random.randint(0, 255)
-blue = random.randint(0, 255)
-playerImage.fill((255, 0, 0))
+playerImage.fill((24, 25, 26))
 teleportPreview = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 teleportPreview.fill((255, 0, 0, 100))
 gameOverOnce = False
 highscore = 0
-redScale = 1
-greenScale = 1
-blueScale = 1
 cachedUiScale = None
 font = None
 instructionFont = None
@@ -108,30 +102,13 @@ while running:
         70,
     )
 
-
-    red += redScale
-    green += greenScale
-    blue += blueScale
-    if red >= 255:
-        redScale = -1
-    elif red <= 0:
-        redScale = 1
-    if green >= 255:
-        greenScale = -1
-    elif green <= 0:
-        greenScale = 1
-    if blue >= 255:
-        blueScale = -1
-    elif blue <= 0:
-        blueScale = 1
-    playerImage.fill((red, green, blue))
+    playerImage.fill((24,25,26))
     if uiScale != cachedUiScale:
         font = pygame.font.SysFont(None, max(20, round(40 * uiScale)))
         instructionFont = pygame.font.SysFont(None, max(16, round(28 * uiScale)))
         cachedUiScale = uiScale
     textSpacing = max(8, round(12 * uiScale))
 
-    # Check for events, such as closing the window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -146,13 +123,13 @@ while running:
                     if keys[pygame.K_UP] or keys[pygame.K_w]:
                         playerY -= teleportDistance
                         teleported = True
-                    elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+                    if keys[pygame.K_DOWN] or keys[pygame.K_s]:
                         playerY += teleportDistance
                         teleported = True
-                    elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+                    if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                         playerX += teleportDistance
                         teleported = True
-                    elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+                    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
                         playerX -= teleportDistance
                         teleported = True
 
@@ -168,34 +145,33 @@ while running:
                 js.window.open(githubUrl, "_blank")
 
     if gameStarted and not paused:
-        # Draw the game
         screen.fill((0, 255, 0))
         keys = pygame.key.get_pressed()
         if not teleportedThisFrame:
-            # Move left and right
-            if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-                playerX -= playerSpeed
-            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-                playerX += playerSpeed
-
-            # Move up and down
-            if keys[pygame.K_UP] or keys[pygame.K_w]:
-                playerY -= playerSpeed
-            if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-                playerY += playerSpeed
-
-        # Keep the player inside the screen
+            move_x = (
+                (keys[pygame.K_RIGHT] or keys[pygame.K_d])
+                - (keys[pygame.K_LEFT] or keys[pygame.K_a])
+            )
+            move_y = (
+                (keys[pygame.K_DOWN] or keys[pygame.K_s])
+                - (keys[pygame.K_UP] or keys[pygame.K_w])
+            )
+            if move_x != 0 and move_y != 0:
+                movementMultiplier = 0.7071
+            else:
+                movementMultiplier = 1.0
+            playerX += move_x * playerSpeed * movementMultiplier
+            playerY += move_y * playerSpeed * movementMultiplier
         playerX = max(0, min(playerX, screenWidth - playerSize))
         playerY = max(0, min(playerY, screenHeight - playerSize))
 
         player = pygame.Rect(playerX, playerY, playerSize, playerSize)
         trailFrameCounter += 1
+        
         if trailFrameCounter >= 3:
             trail.append((player.copy(), 150))
             trailFrameCounter = 0
             trail = trail[-12:]
-
-        # Reduce the opacity of old trail positions
         updatedTrail = []
         for trailRect, opacity in trail:
             opacity -= 8
@@ -203,16 +179,6 @@ while running:
                 updatedTrail.append((trailRect, opacity))
 
         trail = updatedTrail
-        # for obstacle in obstacles:
-        #     if player.colliderect(obstacle):
-        #         # playerX = 0
-        #         # playerY = screenHeight - playerSize
-        #         # player = pygame.Rect(playerX, playerY, playerSize, playerSize)
-        #         gameOverOnce = True
-        #         gameStarted = False
-        #         obstacleInterval = 0.75
-        #         break
-                # Only check for game-over collisions if the grace period has expired!
         if pygame.time.get_ticks() - lastTeleportTime >= teleportGraceTime:
             for obstacle in obstacles:
                 if player.colliderect(obstacle):
@@ -244,17 +210,42 @@ while running:
 
         for obstacle in obstacles:
             pygame.draw.rect(screen, (0, 0, 255), obstacle)
-        screen.blit(teleportPreview, (max(0, playerX - teleportDistance), playerY))
-        screen.blit(teleportPreview, (min(screenWidth - teleportPreview.get_width(), playerX + teleportDistance), playerY))
-        screen.blit(teleportPreview, (playerX, max(0, playerY - teleportDistance)))
-        screen.blit(teleportPreview, (playerX, min(screenHeight - teleportPreview.get_height(), playerY + teleportDistance)))
+        # screen.blit(teleportPreview, (max(0, playerX - teleportDistance), playerY))
+        # screen.blit(teleportPreview, (min(screenWidth - teleportPreview.get_width(), playerX + teleportDistance), playerY))
+        # screen.blit(teleportPreview, (playerX, max(0, playerY - teleportDistance)))
+        # screen.blit(teleportPreview, (playerX, min(screenHeight - teleportPreview.get_height(), playerY + teleportDistance)))
+
+
+        if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and (keys[pygame.K_UP] or keys[pygame.K_w]):
+            screen.blit(teleportPreview, (max(0, playerX - teleportDistance), max(0, playerY - teleportDistance)))
+        elif (keys[pygame.K_LEFT] or keys[pygame.K_a]) and (keys[pygame.K_DOWN] or keys[pygame.K_s]):
+            screen.blit(teleportPreview, (max(0, playerX - teleportDistance), max(0, playerY + teleportDistance)))
+        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (keys[pygame.K_UP] or keys[pygame.K_w]):
+            screen.blit(teleportPreview, (max(0, playerX + teleportDistance), max(0, playerY - teleportDistance)))
+        elif (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and (keys[pygame.K_DOWN] or keys[pygame.K_s]):
+            screen.blit(teleportPreview, (max(0, playerX + teleportDistance), max(0, playerY + teleportDistance)))
+        elif keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            screen.blit(teleportPreview, (max(0, playerX - teleportDistance), playerY))
+        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            screen.blit(teleportPreview, (min(screenWidth - teleportPreview.get_width(), playerX + teleportDistance), playerY))
+        elif keys[pygame.K_UP] or keys[pygame.K_w]:
+            screen.blit(teleportPreview, (playerX, max(0, playerY - teleportDistance)))
+        elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
+            screen.blit(teleportPreview, (playerX, min(screenHeight - teleportPreview.get_height(), playerY + teleportDistance)))
+        
         for trailRect, opacity in trail:
-            trailColor = (
-                red * opacity // 150,
-                green * opacity // 150,
-                blue * opacity // 150,
-            )
-            pygame.draw.rect(screen, trailColor, trailRect)
+            scaleFactor = opacity / 150.0
+            scaledWidth = max(1, int(playerSize * scaleFactor))
+            scaledHeight = max(1, int(playerSize * scaleFactor))
+            scaledTrailSurface = pygame.transform.scale(playerImage, (scaledWidth, scaledHeight))
+            alphaSurface = pygame.Surface((scaledWidth, scaledHeight), pygame.SRCALPHA)
+            alphaSurface.fill((255, 255, 255, int(opacity)))
+            scaledTrailSurface.blit(alphaSurface, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
+            offsetX = (playerSize - scaledWidth) // 2
+            offsetY = (playerSize - scaledHeight) // 2
+            
+            screen.blit(scaledTrailSurface, (trailRect.x + offsetX, trailRect.y + offsetY))
+
         screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
             pygame.draw.rect(screen, (255, 255, 0), nextObstacle, 5)
@@ -330,7 +321,7 @@ while running:
         menuTexts.append(font.render(f"Highscore: {highscore}", True, (255, 255, 255)))
         instructions = [
             "Move: Arrow Keys or W A S D",
-            "Teleport: Hold SPACE and press a Direction Key",
+            "Teleport: Press a Direction Key the the Spacebar to teleport in that direction",
             "Teleport cooldown: Check the timer in the top-left",
             "Blue lasers are active. Yellow outlines show the next wave.",
             "Each wave replaces all lasers at the same time.",

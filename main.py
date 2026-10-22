@@ -31,7 +31,7 @@ teleportCooldown = 500
 lastTeleportTime = -teleportCooldown
 githubUrl = "https://github.com/George-LJH/PygameIntroductionWithPyScript"
 pygame.init()
-
+paused = False
 
 window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "My First PyGame Program"
@@ -161,11 +161,13 @@ while running:
                         teleportedThisFrame = True
                         playerX = max(0, min(playerX, screenWidth - playerSize))
                         playerY = max(0, min(playerY, screenHeight - playerSize))
+            if event.key == pygame.K_p and gameStarted:
+                paused = not paused
         if event.type == pygame.MOUSEBUTTONDOWN:
             if startButton.collidepoint(event.pos) and not gameStarted:
                 js.window.open(githubUrl, "_blank")
 
-    if gameStarted:
+    if gameStarted and not paused:
         # Draw the game
         screen.fill((0, 255, 0))
         keys = pygame.key.get_pressed()
@@ -277,6 +279,12 @@ while running:
             textPosition = text.get_rect(topleft=(textSpacing, hudY))
             screen.blit(text, textPosition)
             hudY += text.get_height() + textSpacing
+    elif paused:
+        pauseText = font.render("PAUSED - Press P to resume", True, (255, 255, 255))
+        screen.blit(
+            pauseText,
+            pauseText.get_rect(center=(displayWidth / 2, displayHeight / 2))
+        )
     else:
         # Game Over or Start Screen
         screen.fill((0, 0, 0))

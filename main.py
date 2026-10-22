@@ -26,6 +26,7 @@ playerSpeed = 10
 obstacleSize = 25
 obstacleInterval = 0.75
 maxObstacles = 2
+maxObstacleLimit = 5
 teleportDistance = 300
 teleportCooldown = 500
 lastTeleportTime = -teleportCooldown
@@ -218,7 +219,10 @@ while running:
             
             obstacleSize = min(obstacleSize + 1, 50)
             if score % 5 == 0 and score != 0:
-                maxObstacles += min(7, int(score / 5))
+                maxObstacles = min(
+                    maxObstacleLimit,
+                    maxObstacles + min(7, int(score / 5)),
+                )
             obstacles = nextObstacles
             nextObstacles = []
             for _ in range(maxObstacles):

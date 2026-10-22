@@ -48,6 +48,9 @@ highscore = 0
 redScale = 1
 greenScale = 1
 blueScale = 1
+cachedUiScale = None
+font = None
+instructionFont = None
 
 def drawCenteredLines(textSurfaces, centerX, centerY, spacing):
     totalHeight = sum(text.get_height() for text in textSurfaces)
@@ -63,7 +66,8 @@ def drawCenteredLines(textSurfaces, centerX, centerY, spacing):
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
     global nextObstacles, player, lastObstacleTime, gameStarted
-    global obstacleSize, lastTeleportTime, highscore, maxObstacles
+    global obstacleSize, lastTeleportTime, highscore, maxObstacles, trail
+    global trailFrameCounter
     obstacleSize = 25
     score = 0
     obstacleInterval = 0.75
@@ -80,6 +84,8 @@ def resetGame():
     if saved_highscore is None:
         js.localStorage.setItem("highScore", "0")
     maxObstacles = 2
+    trail = []
+    trailFrameCounter = 0
 
 
 def startGame():
@@ -119,8 +125,10 @@ while running:
     elif blue <= 0:
         blueScale = 1
     playerImage.fill((red, green, blue))
-    font = pygame.font.SysFont(None, max(20, round(40 * uiScale)))
-    instructionFont = pygame.font.SysFont(None, max(16, round(28 * uiScale)))
+    if uiScale != cachedUiScale:
+        font = pygame.font.SysFont(None, max(20, round(40 * uiScale)))
+        instructionFont = pygame.font.SysFont(None, max(16, round(28 * uiScale)))
+        cachedUiScale = uiScale
     textSpacing = max(8, round(12 * uiScale))
 
     # Check for events, such as closing the window
@@ -179,7 +187,20 @@ while running:
         playerY = max(0, min(playerY, screenHeight - playerSize))
 
         player = pygame.Rect(playerX, playerY, playerSize, playerSize)
+        trailFrameCounter += 1
+        if trailFrameCounter >= 3:
+            trail.append((player.copy(), 150))
+            trailFrameCounter = 0
+            trail = trail[-12:]
 
+        # Reduce the opacity of old trail positions
+        updatedTrail = []
+        for trailRect, opacity in trail:
+            opacity -= 8
+            if opacity > 0:
+                updatedTrail.append((trailRect, opacity))
+
+        trail = updatedTrail
         for obstacle in obstacles:
             if player.colliderect(obstacle):
                 # playerX = 0
@@ -214,6 +235,13 @@ while running:
         screen.blit(teleportPreview, (min(screenWidth - teleportPreview.get_width(), playerX + teleportDistance), playerY))
         screen.blit(teleportPreview, (playerX, max(0, playerY - teleportDistance)))
         screen.blit(teleportPreview, (playerX, min(screenHeight - teleportPreview.get_height(), playerY + teleportDistance)))
+        for trailRect, opacity in trail:
+            trailColor = (
+                red * opacity // 150,
+                green * opacity // 150,
+                blue * opacity // 150,
+            )
+            pygame.draw.rect(screen, trailColor, trailRect)
         screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
             pygame.draw.rect(screen, (255, 255, 0), nextObstacle, 5)

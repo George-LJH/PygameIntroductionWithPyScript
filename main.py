@@ -342,11 +342,11 @@ while running:
         menuTexts.append(font.render(f"Highscore: {highscore}", True, (255, 255, 255)))
         instructions = [
             "Move: Arrow Keys or W A S D",
-            "Teleport: Press a Direction Key the the Spacebar to teleport in that direction",
-            "Teleport cooldown: Check the timer in the top-left",
-            "Blue lasers are active. Yellow outlines show the next wave.",
+            "Teleport: Press 1 or 2 directional keys (2 to teleport diagonally), then press the Spacebar.",
+            "Teleport cooldown: Check the top-left timer or your teleportation preview; a red indicator means you must wait, while a green indicator means you are ready to teleport",
+            "Red lasers are active. Yellow outlines show the next wave.",
             "Each wave replaces all lasers at the same time.",
-            "The number of lasers can increase during the game.",
+            "The number of lasers will increase during the game.",
         ]
         menuTexts.extend(
             instructionFont.render(instruction, True, (255, 255, 255))

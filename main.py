@@ -87,7 +87,6 @@ def startGame():
     resetGame()
     gameStarted = True
 
-
 running = True
 resetGame()
 
@@ -216,7 +215,7 @@ while running:
 
 
         for obstacle in obstacles:
-            pygame.draw.rect(screen, (0, 0, 255), obstacle)
+            pygame.draw.rect(screen, (255, 0, 0), obstacle)
         # screen.blit(teleportPreview, (max(0, playerX - teleportDistance), playerY))
         # screen.blit(teleportPreview, (min(screenWidth - teleportPreview.get_width(), playerX + teleportDistance), playerY))
         # screen.blit(teleportPreview, (playerX, max(0, playerY - teleportDistance)))
@@ -255,7 +254,9 @@ while running:
 
         screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
-            pygame.draw.rect(screen, (255, 255, 0), nextObstacle, 5)
+            preview_surf = pygame.Surface((nextObstacle.width, nextObstacle.height), pygame.SRCALPHA).convert_alpha()
+            pygame.draw.rect(preview_surf, (255, 255, 0, 112), (0, 0, nextObstacle.width, nextObstacle.height), 5)
+            screen.blit(preview_surf, (nextObstacle.x, nextObstacle.y))
         scoreText = font.render(f"Wave: {score}", True, (255, 255, 255))
         teleportCooldownRemaining = max(
             0, (teleportCooldown - (pygame.time.get_ticks() - lastTeleportTime)) / 1000

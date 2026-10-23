@@ -253,12 +253,17 @@ while running:
             offsetY = (playerSize - scaledHeight) // 2
             
             screen.blit(scaledTrailSurface, (trailRect.x + offsetX, trailRect.y + offsetY))
-
+        for nextObstacle in nextObstacles:
+            if player.colliderect(nextObstacle):
+                playerImage.fill((255, 0, 0))
+            else:
+                playerImage.fill((182, 182, 182))
         screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
             preview_surf = pygame.Surface((nextObstacle.width, nextObstacle.height), pygame.SRCALPHA).convert_alpha()
             pygame.draw.rect(preview_surf, (255, 255, 0, 112), (0, 0, nextObstacle.width, nextObstacle.height), 5)
             screen.blit(preview_surf, (nextObstacle.x, nextObstacle.y))
+            
         scoreText = font.render(f"Wave: {score}", True, (255, 255, 255))
         teleportCooldownRemaining = max(
             0, (teleportCooldown - (pygame.time.get_ticks() - lastTeleportTime)) / 1000

@@ -253,11 +253,6 @@ while running:
             offsetY = (playerSize - scaledHeight) // 2
             
             screen.blit(scaledTrailSurface, (trailRect.x + offsetX, trailRect.y + offsetY))
-        for nextObstacle in nextObstacles:
-            if player.colliderect(nextObstacle):
-                playerImage.fill((255, 0, 0))
-            else:
-                playerImage.fill((182, 182, 182))
         screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
             preview_surf = pygame.Surface((nextObstacle.width, nextObstacle.height), pygame.SRCALPHA).convert_alpha()

@@ -343,7 +343,8 @@ while running:
         instructions = [
             "Move: Arrow Keys or W A S D",
             "Teleport: Press 1 or 2 directional keys (2 to teleport diagonally), then press the Spacebar.",
-            "Teleport cooldown: Check the top-left timer or your teleportation preview; a red indicator means you must wait, while a green indicator means you are ready to teleport",
+            "Teleport cooldown: Check the top-left timer or your teleportation preview",
+            "a red indicator means you must wait, while a green indicator means you are ready to teleport",
             "Red lasers are active. Yellow outlines show the next wave.",
             "Each wave replaces all lasers at the same time.",
             "The number of lasers will increase during the game.",

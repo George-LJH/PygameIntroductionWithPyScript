@@ -288,7 +288,7 @@ while running:
             0, (teleportGraceTime - (pygame.time.get_ticks() - lastTeleportTime)) / 1000
         )
         teleportGraceTimeText = font.render(
-            f"Teleport Grace Time: {teleportGraceRemaining:.3f}s",
+            f"Teleport Grace Period: {teleportGraceRemaining:.3f}s",
             True,
             (255, 255, 255),
         )

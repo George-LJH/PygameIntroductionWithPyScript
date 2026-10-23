@@ -106,7 +106,9 @@ while running:
         200,
         50,
     )
-    playerImage.fill((24,25,26))
+    # playerImage.fill((24,25,26))
+    playerImage.fill((182, 182, 182))
+    
     if uiScale != cachedUiScale:
         font = pygame.font.SysFont(None, max(20, round(40 * uiScale)))
         instructionFont = pygame.font.SysFont(None, max(16, round(28 * uiScale)))
@@ -266,14 +268,16 @@ while running:
                 f"Teleport cooldown: {teleportCooldownRemaining:.3f}s",
                 True,
                 (255, 255, 255),
-        )
+            )
+            teleportPreview.fill((255, 0, 0, 100))
 
         else:
             teleportCooldownText = font.render(
                 f"Teleport ready!",
                 True,
                 (255, 255, 255),
-        )
+            )
+            teleportPreview.fill((0,255, 0, 100))
         obstacleIntervalText = font.render(
             f"Game Speed: {obstacleInterval:.2f}s",
             True,

@@ -151,7 +151,7 @@ while running:
                 js.localStorage.removeItem("highScore")
                 resetGame()
     if gameStarted and not paused:
-        screen.fill((0, 255, 0))
+        screen.fill((15, 12, 30))
         keys = pygame.key.get_pressed()
         if not teleportedThisFrame:
             move_x = (

@@ -95,13 +95,18 @@ while running:
     displayWidth, displayHeight = screen.get_size()
     uiScale = min(displayWidth / screenWidth, displayHeight / screenHeight)
     teleportedThisFrame = False
-    startButton = pygame.Rect(
+    GithubButton = pygame.Rect(
         displayWidth // 2 - 140,
         displayHeight - 90,
         280,
         70,
     )
-
+    resetData = pygame.Rect(
+        10,
+        displayHeight - 55,
+        200,
+        50,
+    )
     playerImage.fill((24,25,26))
     if uiScale != cachedUiScale:
         font = pygame.font.SysFont(None, max(20, round(40 * uiScale)))
@@ -141,9 +146,11 @@ while running:
             if event.key == pygame.K_p and gameStarted:
                 paused = not paused
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if startButton.collidepoint(event.pos) and not gameStarted:
+            if GithubButton.collidepoint(event.pos) and not gameStarted:
                 js.window.open(githubUrl, "_blank")
-
+            if resetData.collidepoint(event.pos) and not gameStarted:
+                js.localStorage.removeItem("highScore")
+                resetGame()
     if gameStarted and not paused:
         screen.fill((0, 255, 0))
         keys = pygame.key.get_pressed()
@@ -299,14 +306,23 @@ while running:
     else:
         # Game Over or Start Screen
         screen.fill((0, 0, 0))
-        startButtonColor = (0, 180, 255) if startButton.collidepoint(
+        GithubButtonColor = (0, 180, 255) if GithubButton.collidepoint(
             pygame.mouse.get_pos()
         ) else (0, 120, 255)
-        pygame.draw.rect(screen, startButtonColor, startButton)
-        buttonLabel = "View GitHub Repo"
-        startButtonText = font.render(buttonLabel, True, (255, 255, 255))
-        startButtonTextPosition = startButtonText.get_rect(center=startButton.center)
-        screen.blit(startButtonText, startButtonTextPosition)
+
+        resetDataButtonColor = (0, 180, 255) if resetData.collidepoint(
+            pygame.mouse.get_pos()
+        ) else (0, 120, 255)
+        pygame.draw.rect(screen, resetDataButtonColor, resetData)
+        resetDataButtonLabel = "Reset Data"
+        resetDataButtonText = font.render(resetDataButtonLabel, True, (255, 255, 255))
+        resetDataButtonTextPosition = resetDataButtonText.get_rect(center=resetData.center)
+        screen.blit(resetDataButtonText, resetDataButtonTextPosition)   
+        pygame.draw.rect(screen, GithubButtonColor, GithubButton)
+        githubButtonLabel = "View GitHub Repo"
+        GithubButtonText = font.render(githubButtonLabel, True, (255, 255, 255))
+        GithubButtonTextPosition = GithubButtonText.get_rect(center=GithubButton.center)
+        screen.blit(GithubButtonText, GithubButtonTextPosition)
         if not gameOverOnce:
             menuTexts = [
                 font.render("Press ENTER to start", True, (255, 255, 255)),

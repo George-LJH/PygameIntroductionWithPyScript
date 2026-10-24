@@ -32,7 +32,6 @@ githubUrl = "https://github.com/George-LJH/PygameIntroductionWithPyScript"
 pygame.init()
 paused = False
 teleportGraceTime = 250
-
 window = pygame.Window(size=(screenWidth, screenHeight))
 window.title = "Blnk - Game"
 screen = window.get_surface()
@@ -50,17 +49,17 @@ titleSurface = titleFont.render("Blnk", True, (255, 255, 255))
 titleRect = titleSurface.get_rect()
 titleRect.centerx = screenWidth // 2
 titleRect.top = 40
+# Function to draw multiple lines of text centered for the instructions
 def drawCenteredLines(textSurfaces, centerX, centerY, spacing):
     totalHeight = sum(text.get_height() for text in textSurfaces)
     totalHeight += spacing * (len(textSurfaces) - 1)
     currentY = centerY - totalHeight / 2
-
     for text in textSurfaces:
         textPosition = text.get_rect(center=(centerX, currentY + text.get_height() / 2))
         screen.blit(text, textPosition)
         currentY += text.get_height() + spacing
 
-
+# Function to reset the game state
 def resetGame():
     global score, obstacleInterval, playerX, playerY, obstacles
     global nextObstacles, player, lastObstacleTime, gameStarted
@@ -85,7 +84,7 @@ def resetGame():
     trail = []
     trailFrameCounter = 0
     lastTeleportTime = pygame.time.get_ticks() - max(teleportCooldown, teleportGraceTime)
-
+# Function to start the game
 def startGame():
     global gameStarted
     resetGame()
@@ -95,6 +94,7 @@ running = True
 resetGame()
 
 while running:
+    # Get the current display size and calculate the UI scale based on the screen dimensions
     displayWidth, displayHeight = screen.get_size()
     uiScale = min(displayWidth / screenWidth, displayHeight / screenHeight)
     teleportedThisFrame = False
@@ -110,7 +110,6 @@ while running:
         200,
         50,
     )
-    # playerImage.fill((24,25,26))
     playerImage.fill((182, 182, 182))
     
     if uiScale != cachedUiScale:
@@ -118,7 +117,7 @@ while running:
         instructionFont = pygame.font.SysFont(None, max(16, round(28 * uiScale)))
         cachedUiScale = uiScale
     textSpacing = max(8, round(12 * uiScale))
-
+    # Handle events(NOT FOR MOVEMENT, JUST FOR QUIT AND TELEPORTATION)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -158,6 +157,7 @@ while running:
                 resetGame()
     if gameStarted and not paused:
         screen.fill((15, 12, 30))
+        # Handle Movement
         keys = pygame.key.get_pressed()
         if not teleportedThisFrame:
             move_x = (
@@ -179,7 +179,7 @@ while running:
 
         player = pygame.Rect(playerX, playerY, playerSize, playerSize)
         trailFrameCounter += 1
-        
+        # Trail behind player
         if trailFrameCounter >= 3:
             trail.append((player.copy(), 150))
             trailFrameCounter = 0
@@ -198,7 +198,7 @@ while running:
                     gameStarted = False
                     obstacleInterval = 0.75
                     break
-
+        # Obstacles
         currentTimeObstacleGeneration = time.time()
         if currentTimeObstacleGeneration - lastObstacleTime >= obstacleInterval:
             
@@ -222,12 +222,7 @@ while running:
 
         for obstacle in obstacles:
             pygame.draw.rect(screen, (255, 0, 0), obstacle)
-        # screen.blit(teleportPreview, (max(0, playerX - teleportDistance), playerY))
-        # screen.blit(teleportPreview, (min(screenWidth - teleportPreview.get_width(), playerX + teleportDistance), playerY))
-        # screen.blit(teleportPreview, (playerX, max(0, playerY - teleportDistance)))
-        # screen.blit(teleportPreview, (playerX, min(screenHeight - teleportPreview.get_height(), playerY + teleportDistance)))
-
-
+        # Show teleport preview
         if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and (keys[pygame.K_UP] or keys[pygame.K_w]):
             screen.blit(teleportPreview, (max(0, playerX - teleportDistance), max(0, playerY - teleportDistance)))
         elif (keys[pygame.K_LEFT] or keys[pygame.K_a]) and (keys[pygame.K_DOWN] or keys[pygame.K_s]):
@@ -244,7 +239,7 @@ while running:
             screen.blit(teleportPreview, (playerX, max(0, playerY - teleportDistance)))
         elif keys[pygame.K_DOWN] or keys[pygame.K_s]:
             screen.blit(teleportPreview, (playerX, min(screenHeight - teleportPreview.get_height(), playerY + teleportDistance)))
-        
+        # Handle Trails(AGAIN)
         for trailRect, opacity in trail:
             scaleFactor = opacity / 150.0
             scaledWidth = max(1, int(playerSize * scaleFactor))
@@ -257,6 +252,7 @@ while running:
             offsetY = (playerSize - scaledHeight) // 2
             
             screen.blit(scaledTrailSurface, (trailRect.x + offsetX, trailRect.y + offsetY))
+        # Obstacles Collision Detection(to change player color)
         for nextObstacle in nextObstacles:
             if player.colliderect(nextObstacle):
                 playerImage.fill((255, 0, 0))
@@ -264,11 +260,12 @@ while running:
             if player.colliderect(obstacle):
                 playerImage.fill((255, 0, 0))
         screen.blit(playerImage, player)
+        # Draw next obstacles with yellow outline
         for nextObstacle in nextObstacles:
             preview_surf = pygame.Surface((nextObstacle.width, nextObstacle.height), pygame.SRCALPHA).convert_alpha()
             pygame.draw.rect(preview_surf, (255, 255, 0, 112), (0, 0, nextObstacle.width, nextObstacle.height), 5)
             screen.blit(preview_surf, (nextObstacle.x, nextObstacle.y))
-            
+        # HUD
         scoreText = font.render(f"Wave: {score}", True, (255, 255, 255))
         teleportCooldownRemaining = max(
             0, (teleportCooldown - (pygame.time.get_ticks() - lastTeleportTime)) / 1000
@@ -312,6 +309,7 @@ while running:
             textPosition = text.get_rect(topleft=(textSpacing, hudY))
             screen.blit(text, textPosition)
             hudY += text.get_height() + textSpacing
+    # Paused code
     elif paused:
         pauseText = font.render("PAUSED - Press P to resume", True, (255, 255, 255))
         screen.blit(
@@ -319,15 +317,16 @@ while running:
             pauseText.get_rect(center=(displayWidth / 2, displayHeight / 2))
         )
     else:
-        # Game Over or Start Screen
+        # Go to GITHUB REPO
         screen.fill((0, 0, 0))
         GithubButtonColor = (0, 180, 255) if GithubButton.collidepoint(
             pygame.mouse.get_pos()
         ) else (0, 120, 255)
-
+        # RESET DATA BUTTON
         resetDataButtonColor = (0, 180, 255) if resetData.collidepoint(
             pygame.mouse.get_pos()
         ) else (0, 120, 255)
+        # Draw the buttons
         pygame.draw.rect(screen, resetDataButtonColor, resetData)
         resetDataButtonLabel = "Reset Data"
         resetDataButtonText = font.render(resetDataButtonLabel, True, (255, 255, 255))
@@ -354,7 +353,8 @@ while running:
             "Move: Arrow Keys or W A S D",
             "Teleport: Press 1 or 2 directional keys (2 to teleport diagonally), then press the Spacebar.",
             "Teleport cooldown: Check the top-left timer or your teleportation preview ",
-            "a red indicator means you must wait, while a green indicator means you are ready to teleport",
+            "a red indicator on the teleport preview means you must wait, while a green indicator means you are ready to teleport",
+            "If your character turns red, it means you are in the path of an incoming laser and will be destroyed if you don't teleport or move out of the way.",
             "Red lasers are active. Yellow outlines show the next wave.",
             "Each wave replaces all lasers at the same time.",
             "The number of lasers will increase during the game.",

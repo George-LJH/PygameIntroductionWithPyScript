@@ -354,7 +354,7 @@ while running:
             "Teleport: Press 1 or 2 directional keys (2 to teleport diagonally), then press the Spacebar.",
             "Teleport cooldown: Check the top-left timer or your teleportation preview ",
             "a red indicator on the teleport preview means you must wait, while a green indicator means you are ready to teleport",
-            "If your character turns red, it means you are in the path of an incoming laser and will be destroyed if you don't teleport or move out of the way.",
+            "If your character turns red, it means you are in the path of an incoming laser",
             "Red lasers are active. Yellow outlines show the next wave.",
             "Each wave replaces all lasers at the same time.",
             "The number of lasers will increase during the game.",

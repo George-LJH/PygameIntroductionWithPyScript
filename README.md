@@ -1,5 +1,5 @@
 ### Pygame + PyScript
-This is my intro to PyGame which I compiled to WASM with PyScript
+This is my intro to PyGame which I compiled to WASM with PyScript. It's a game called Blnk
 ### Instructions
 Use WASD or Arrow Keys to move  
 You can teleport by holding down the keys that correspond to the direction you want to teleport in and pressing space  

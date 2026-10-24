@@ -3,7 +3,7 @@ import random
 import pygame
 import time
 import js
-
+# Function to generate random obstacle, optional parameter to ensure it doesn't collide with a safe rectangle (like the player)
 def randomObstacle(safeRect=None):
     while True:
         obstacleX = random.randint(0, screenWidth - obstacleSize)
@@ -34,7 +34,7 @@ paused = False
 teleportGraceTime = 250
 
 window = pygame.Window(size=(screenWidth, screenHeight))
-window.title = "My First PyGame Program"
+window.title = "Blnk - Game"
 screen = window.get_surface()
 playerImage = pygame.Surface((playerSize, playerSize), pygame.SRCALPHA)
 playerImage.fill((24, 25, 26))
@@ -45,7 +45,11 @@ highscore = 0
 cachedUiScale = None
 font = None
 instructionFont = None
-
+titleFont = pygame.font.SysFont("Arial", 64, bold=True)
+titleSurface = titleFont.render("Blnk", True, (255, 255, 255))
+titleRect = titleSurface.get_rect()
+titleRect.centerx = screenWidth // 2
+titleRect.top = 40
 def drawCenteredLines(textSurfaces, centerX, centerY, spacing):
     totalHeight = sum(text.get_height() for text in textSurfaces)
     totalHeight += spacing * (len(textSurfaces) - 1)
@@ -253,6 +257,12 @@ while running:
             offsetY = (playerSize - scaledHeight) // 2
             
             screen.blit(scaledTrailSurface, (trailRect.x + offsetX, trailRect.y + offsetY))
+        for nextObstacle in nextObstacles:
+            if player.colliderect(nextObstacle):
+                playerImage.fill((255, 0, 0))
+        for obstacle in obstacles:
+            if player.colliderect(obstacle):
+                playerImage.fill((255, 0, 0))
         screen.blit(playerImage, player)
         for nextObstacle in nextObstacles:
             preview_surf = pygame.Surface((nextObstacle.width, nextObstacle.height), pygame.SRCALPHA).convert_alpha()
@@ -354,6 +364,7 @@ while running:
             for instruction in instructions
         )
         drawCenteredLines(menuTexts, displayWidth / 2, displayHeight / 2, textSpacing)
+        screen.blit(titleSurface, titleRect) 
     window.flip()
     # Give the browser time to update the screen
     await asyncio.sleep(1 / 120)

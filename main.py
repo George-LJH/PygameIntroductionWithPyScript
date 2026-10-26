@@ -190,36 +190,6 @@ while running:
                 updatedTrail.append((trailRect, opacity))
 
         trail = updatedTrail
-
-
-        # if pygame.time.get_ticks() - lastTeleportTime >= teleportGraceTime:
-        #     for obstacle in obstacles:
-        #         if player.colliderect(obstacle):
-        #             currentScreen = screen.copy()
-        #             js.window.alert("START")
-        #             gameoverX = 0
-        #             # pygame.draw.rect(screen, (0, 0, 255), (-screenWidth + gameoverX, 0, screenWidth, screenHeight))
-        #             # for i in range(0, screenWidth):
-        #             #     gameoverX += 10
-        #             #     pygame.draw.rect(screen, (0, 0, 0), (-screenWidth + gameoverX, 0, screenWidth, screenHeight))
-        #             #     window.flip()
-        #             #     await asyncio.sleep(1 / fps)
-        #             for i in range(0, screenWidth, 10):
-        #                 screen.blit(currentScreen, (0, 0))
-        #                 gameoverX += 10
-        #                 pygame.draw.rect(
-        #                     screen, (0, 0, 0),
-        #                     (-screenWidth + gameoverX, 0, screenWidth, screenHeight)
-        #                 )
-        #                 window.flip()
-        #                 await asyncio.sleep(1 / fps)
-        #             js.window.alert("DONE")
-        #             gameOverOnce = True
-        #             gameStarted = False
-        #             obstacleInterval = 0.75
-        #             break
-
-
         # Obstacles
         currentTimeObstacleGeneration = time.time()
         if currentTimeObstacleGeneration - lastObstacleTime >= obstacleInterval:
@@ -332,7 +302,7 @@ while running:
             screen.blit(text, textPosition)
             hudY += text.get_height() + textSpacing
 
-
+        # Game Over Screen
         if (
             pygame.time.get_ticks() - lastTeleportTime >= teleportGraceTime
             and any(player.colliderect(obstacle) for obstacle in obstacles)

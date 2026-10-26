@@ -3,17 +3,15 @@ import random
 import pygame
 import time
 import js
-# Function to generate random obstacle, optional parameter to ensure it doesn't collide with a safe rectangle (like the player)
+# Function to generate random obstacle, optional parameter to ensure it doesn't collide with something
 def randomObstacle(safeRect=None):
     while True:
         obstacleX = random.randint(0, screenWidth - obstacleSize)
         obstacleY = random.randint(0, screenHeight - obstacleSize)
-
         if random.randint(0, 1) == 0:
             obstacle = pygame.Rect(obstacleX, 0, obstacleSize, screenHeight)
         else:
             obstacle = pygame.Rect(0, obstacleY, screenWidth, obstacleSize)
-
         if safeRect is None or not obstacle.colliderect(safeRect):
             return obstacle
 # Game settings
@@ -49,6 +47,7 @@ titleSurface = titleFont.render("Blnk", True, (255, 255, 255))
 titleRect = titleSurface.get_rect()
 titleRect.centerx = screenWidth // 2
 titleRect.top = 40
+fps = 120
 # Function to draw multiple lines of text centered for the instructions
 def drawCenteredLines(textSurfaces, centerX, centerY, spacing):
     totalHeight = sum(text.get_height() for text in textSurfaces)
@@ -191,13 +190,36 @@ while running:
                 updatedTrail.append((trailRect, opacity))
 
         trail = updatedTrail
-        if pygame.time.get_ticks() - lastTeleportTime >= teleportGraceTime:
-            for obstacle in obstacles:
-                if player.colliderect(obstacle):
-                    gameOverOnce = True
-                    gameStarted = False
-                    obstacleInterval = 0.75
-                    break
+
+
+        # if pygame.time.get_ticks() - lastTeleportTime >= teleportGraceTime:
+        #     for obstacle in obstacles:
+        #         if player.colliderect(obstacle):
+        #             currentScreen = screen.copy()
+        #             js.window.alert("START")
+        #             gameoverX = 0
+        #             # pygame.draw.rect(screen, (0, 0, 255), (-screenWidth + gameoverX, 0, screenWidth, screenHeight))
+        #             # for i in range(0, screenWidth):
+        #             #     gameoverX += 10
+        #             #     pygame.draw.rect(screen, (0, 0, 0), (-screenWidth + gameoverX, 0, screenWidth, screenHeight))
+        #             #     window.flip()
+        #             #     await asyncio.sleep(1 / fps)
+        #             for i in range(0, screenWidth, 10):
+        #                 screen.blit(currentScreen, (0, 0))
+        #                 gameoverX += 10
+        #                 pygame.draw.rect(
+        #                     screen, (0, 0, 0),
+        #                     (-screenWidth + gameoverX, 0, screenWidth, screenHeight)
+        #                 )
+        #                 window.flip()
+        #                 await asyncio.sleep(1 / fps)
+        #             js.window.alert("DONE")
+        #             gameOverOnce = True
+        #             gameStarted = False
+        #             obstacleInterval = 0.75
+        #             break
+
+
         # Obstacles
         currentTimeObstacleGeneration = time.time()
         if currentTimeObstacleGeneration - lastObstacleTime >= obstacleInterval:
@@ -309,6 +331,27 @@ while running:
             textPosition = text.get_rect(topleft=(textSpacing, hudY))
             screen.blit(text, textPosition)
             hudY += text.get_height() + textSpacing
+
+
+        if (
+            pygame.time.get_ticks() - lastTeleportTime >= teleportGraceTime
+            and any(player.colliderect(obstacle) for obstacle in obstacles)
+        ):
+            currentScreen = screen.copy()
+
+            for x in range(0, screenWidth, 10):
+                screen.blit(currentScreen, (0, 0))
+                pygame.draw.rect(
+                    screen,
+                    (0, 0, 0),
+                    (x - screenWidth, 0, screenWidth, screenHeight),
+                )
+                window.flip()
+                await asyncio.sleep(1 / fps)
+
+            gameOverOnce = True
+            gameStarted = False
+            obstacleInterval = 0.75
     # Paused code
     elif paused:
         pauseText = font.render("PAUSED - Press P to resume", True, (255, 255, 255))
@@ -367,6 +410,6 @@ while running:
         screen.blit(titleSurface, titleRect) 
     window.flip()
     # Give the browser time to update the screen
-    await asyncio.sleep(1 / 120)
+    await asyncio.sleep(1 / fps)
 
 pygame.quit()
